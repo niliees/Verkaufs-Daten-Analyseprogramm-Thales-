@@ -36,12 +36,16 @@ class VerkaufsprognoseApp:
     def load_data(self):
         try:
             self.daten = pd.read_excel(self.filepath)
-            messagebox.showinfo("Erfolg", "Daten erfolgreich geladen.")
+
+            # Datenbereinigung: Fehlende Werte entfernen
+            self.daten.dropna(inplace=True)
+
+            # Nachricht anzeigen, dass Daten erfolgreich geladen wurden
+            messagebox.showinfo("Erfolg", "Daten erfolgreich geladen und bereinigt.")
         except Exception as e:
             messagebox.showerror("Fehler", f"Fehler beim Laden der Datei: {e}")
 
     def start_prediction(self):
-        # Starte die Vorhersage in einem eigenen Thread, um die GUI nicht zu blockieren
         threading.Thread(target=self.make_prediction).start()
 
     def make_prediction(self):
@@ -50,10 +54,12 @@ class VerkaufsprognoseApp:
             self.daten['Datum'] = pd.to_datetime(self.daten['Datum'])
             self.daten.set_index('Datum', inplace=True)
 
-            # Modellbildung mit SARIMA (Seasonal ARIMA)
+            print("Shape der historischen Daten:", self.daten.shape)
+
+            # Anpassung eines SARIMA-Modells
             modell = SARIMAX(self.daten['Verkaufte Menge'], 
-                             order=(1, 1, 1), 
-                             seasonal_order=(1, 1, 1, 12), 
+                             order=(2, 1, 2),  # Anpassung der Modellparameter
+                             seasonal_order=(1, 1, 1, 12),  # Saisonale Komponenten
                              enforce_stationarity=False, 
                              enforce_invertibility=False)
             modell_fit = modell.fit(disp=False)
@@ -67,13 +73,14 @@ class VerkaufsprognoseApp:
             forecast_series = pd.Series(forecast.predicted_mean, index=forecast_index)
 
             # Sicherstellen, dass alle Datenreihen die gleiche Dimension haben
-            forecast_series = forecast_series.to_frame(name='Verkaufte Menge')
-            gesamt_daten = pd.concat([self.daten[['Verkaufte Menge']], forecast_series])
+            forecast_series = forecast_series.to_frame(name='Vorhersage')
+            gesamt_daten = pd.concat([self.daten[['Verkaufte Menge']], forecast_series], axis=1)
 
-            # Debugging: Überprüfen der Dimensionen
-            print(f"Shape der historischen Daten: {self.daten['Verkaufte Menge'].shape}")
-            print(f"Shape der Vorhersage-Daten: {forecast_series.shape}")
-            print(f"Shape der kombinierten Daten: {gesamt_daten.shape}")
+            # Debugging: Überprüfen der Dimensionen und Werte
+            print("Forecasted Values:")
+            print(forecast_series)
+            print("Combined Data (gesamt_daten):")
+            print(gesamt_daten)
 
             # Plotten der Ergebnisse im Hauptthread
             self.master.after(0, self.plot_results, gesamt_daten)
@@ -83,19 +90,40 @@ class VerkaufsprognoseApp:
             messagebox.showerror("Fehler", f"Fehler bei der Prognose: {e}")
 
     def plot_results(self, gesamt_daten):
-        # Ergebnisse visualisieren
         plt.figure(figsize=(10, 6))
-        plt.plot(gesamt_daten.index, gesamt_daten['Verkaufte Menge'], label='Verkaufte Menge')
+        
+        # Plotten der historischen Daten
+        plt.plot(gesamt_daten.index, gesamt_daten['Verkaufte Menge'], label='Verkaufte Menge', color='blue')
+        
+        # Plotten der Vorhersage als Linie
+        plt.plot(gesamt_daten.index[-12:], gesamt_daten['Vorhersage'].iloc[-12:], label='Vorhersage', color='red', linestyle='--', linewidth=2.5)
 
         plt.xlabel('Monat')
         plt.ylabel('Verkaufte Menge')
         plt.title('Verkaufsprognose für Nachtsichtbrillen')
         plt.legend()
         plt.grid(True)
+        
+        # Manuelle Anpassung der y-Achse
+        plt.ylim([gesamt_daten.min().min() - 10, gesamt_daten.max().max() + 10])
+        
         plt.show()
 
         # Zeige eine Nachricht an, wenn die Vorhersage abgeschlossen ist
         messagebox.showinfo("Abgeschlossen", "Die Verkaufsprognose für 1 Jahr wurde erfolgreich abgeschlossen.")
+
+        # Plot der Originaldaten für Analyse
+        self.plot_original_data()
+
+    def plot_original_data(self):
+        plt.figure(figsize=(10, 6))
+        plt.plot(self.daten.index, self.daten['Verkaufte Menge'], label='Verkaufte Menge', color='blue')
+        plt.xlabel('Datum')
+        plt.ylabel('Verkaufte Menge')
+        plt.title('Verkaufte Menge über die Zeit')
+        plt.legend()
+        plt.grid(True)
+        plt.show()
 
 if __name__ == "__main__":
     root = tk.Tk()
