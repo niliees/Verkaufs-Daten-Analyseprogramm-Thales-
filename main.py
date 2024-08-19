@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from statsmodels.tsa.arima.model import ARIMA
+from statsmodels.tsa.statespace.sarimax import SARIMAX
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from dateutil.relativedelta import relativedelta
@@ -50,33 +50,48 @@ class VerkaufsprognoseApp:
             self.daten['Datum'] = pd.to_datetime(self.daten['Datum'])
             self.daten.set_index('Datum', inplace=True)
 
-            # Schritt 3: Modellbildung mit ARIMA
-            modell = ARIMA(self.daten['Verkaufte Menge'], order=(5, 1, 0))  # (p, d, q) - order kann angepasst werden
-            modell_fit = modell.fit()
+            # Modellbildung mit SARIMA (Seasonal ARIMA)
+            modell = SARIMAX(self.daten['Verkaufte Menge'], 
+                             order=(1, 1, 1), 
+                             seasonal_order=(1, 1, 1, 12), 
+                             enforce_stationarity=False, 
+                             enforce_invertibility=False)
+            modell_fit = modell.fit(disp=False)
 
-            # Schritt 4: Prognose erstellen für 12 Monate (1 Jahr)
+            # Prognose erstellen für 12 Monate (1 Jahr)
             monate_in_zukunft = 12
-            forecast = modell_fit.forecast(steps=monate_in_zukunft)
+            forecast = modell_fit.get_forecast(steps=monate_in_zukunft)
+            forecast_index = pd.date_range(start=self.daten.index[-1] + relativedelta(months=1), 
+                                           periods=monate_in_zukunft, 
+                                           freq='M')
+            forecast_series = pd.Series(forecast.predicted_mean, index=forecast_index)
 
-            zukuenftige_monate_datum = [self.daten.index[-1] + relativedelta(months=i) for i in range(1, monate_in_zukunft + 1)]
+            # Sicherstellen, dass alle Datenreihen die gleiche Dimension haben
+            forecast_series = forecast_series.to_frame(name='Verkaufte Menge')
+            gesamt_daten = pd.concat([self.daten[['Verkaufte Menge']], forecast_series])
 
-            # Kombiniere historische Daten und Vorhersage
-            gesamt_daten = pd.concat([self.daten, pd.Series(forecast, index=zukuenftige_monate_datum, name='Verkaufte Menge')])
+            # Debugging: Überprüfen der Dimensionen
+            print(f"Shape der historischen Daten: {self.daten['Verkaufte Menge'].shape}")
+            print(f"Shape der Vorhersage-Daten: {forecast_series.shape}")
+            print(f"Shape der kombinierten Daten: {gesamt_daten.shape}")
 
             # Plotten der Ergebnisse im Hauptthread
             self.master.after(0, self.plot_results, gesamt_daten)
 
         except Exception as e:
+            print(f"Fehler bei der Prognose: {e}")
             messagebox.showerror("Fehler", f"Fehler bei der Prognose: {e}")
 
     def plot_results(self, gesamt_daten):
         # Ergebnisse visualisieren
-        plt.plot(gesamt_daten.index, gesamt_daten, label='Verkaufte Menge')
+        plt.figure(figsize=(10, 6))
+        plt.plot(gesamt_daten.index, gesamt_daten['Verkaufte Menge'], label='Verkaufte Menge')
 
         plt.xlabel('Monat')
         plt.ylabel('Verkaufte Menge')
         plt.title('Verkaufsprognose für Nachtsichtbrillen')
         plt.legend()
+        plt.grid(True)
         plt.show()
 
         # Zeige eine Nachricht an, wenn die Vorhersage abgeschlossen ist
@@ -86,5 +101,3 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = VerkaufsprognoseApp(root)
     root.mainloop()
-
-#für mehr gehe auf meinen Linktree
