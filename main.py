@@ -60,16 +60,18 @@ class VerkaufsprognoseApp:
 
             zukuenftige_monate_datum = [self.daten.index[-1] + relativedelta(months=i) for i in range(1, monate_in_zukunft + 1)]
 
+            # Kombiniere historische Daten und Vorhersage
+            gesamt_daten = pd.concat([self.daten, pd.Series(forecast, index=zukuenftige_monate_datum, name='Verkaufte Menge')])
+
             # Plotten der Ergebnisse im Hauptthread
-            self.master.after(0, self.plot_results, zukuenftige_monate_datum, forecast)
+            self.master.after(0, self.plot_results, gesamt_daten)
 
         except Exception as e:
             messagebox.showerror("Fehler", f"Fehler bei der Prognose: {e}")
 
-    def plot_results(self, zukuenftige_monate_datum, forecast):
+    def plot_results(self, gesamt_daten):
         # Ergebnisse visualisieren
-        plt.plot(self.daten.index, self.daten['Verkaufte Menge'], label='Historische Verkäufe')
-        plt.plot(zukuenftige_monate_datum, forecast, label='Vorhersage', linestyle='--')
+        plt.plot(gesamt_daten.index, gesamt_daten, label='Verkaufte Menge')
 
         plt.xlabel('Monat')
         plt.ylabel('Verkaufte Menge')
