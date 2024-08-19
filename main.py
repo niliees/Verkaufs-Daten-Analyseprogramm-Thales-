@@ -86,3 +86,5 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = VerkaufsprognoseApp(root)
     root.mainloop()
+
+#für mehr gehe auf meinen Linktree
