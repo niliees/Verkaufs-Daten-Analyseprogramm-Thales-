@@ -7,9 +7,7 @@ from tkinter import ttk, filedialog, messagebox, simpledialog
 from dateutil.relativedelta import relativedelta
 import threading
 import json
-import sys
 import os
-from datetime import datetime
 
 class VerkaufsprognoseApp:
     def __init__(self, master):
@@ -89,6 +87,15 @@ class VerkaufsprognoseApp:
         # Load configuration
         self.config = self.load_config()
 
+        if self.config:
+            # Überprüfen, ob die automatische Prognose aktiviert ist
+            self.auto_prognose = self.config.get('auto_prognose', False)
+            print(f"Auto Prognose: {self.auto_prognose}")  # Debug-Ausgabe, um den Wert von auto_prognose zu überprüfen
+            if self.auto_prognose is True:
+                self.predict_button.grid_remove()  # Entferne den "Prognose erstellen" Button
+        else:
+            self.auto_prognose = False
+
     def load_recent_files(self):
         """Lädt die zuletzt verwendeten Dateien aus einer JSON-Datei."""
         if os.path.exists('recent_files.json'):
@@ -108,7 +115,10 @@ class VerkaufsprognoseApp:
         """Wird aufgerufen, wenn eine Datei aus dem Verlauf ausgewählt wird."""
         self.filepath = self.selected_file.get()
         self.load_data()
-        self.predict_button.config(state=tk.NORMAL)
+        if self.auto_prognose is True:
+            self.start_prediction()
+        else:
+            self.predict_button.config(state=tk.NORMAL)
         self.single_day_button.config(state=tk.NORMAL)
 
     def browse_file(self):
@@ -117,7 +127,10 @@ class VerkaufsprognoseApp:
         if self.filepath:
             self.save_recent_file(self.filepath)
             self.load_data()
-            self.predict_button.config(state=tk.NORMAL)
+            if self.auto_prognose is True:
+                self.start_prediction()
+            else:
+                self.predict_button.config(state=tk.NORMAL)
             self.single_day_button.config(state=tk.NORMAL)
 
     def load_data(self):
@@ -356,10 +369,10 @@ class VerkaufsprognoseApp:
             return config
         except FileNotFoundError:
             messagebox.showerror("Fehler", "Konfigurationsdatei 'config.json' nicht gefunden.")
-            sys.exit(1)  # Programm beenden, wenn die Konfigurationsdatei nicht gefunden wird
+            return None  # Rückgabe von None, wenn die Datei nicht gefunden wird
         except json.JSONDecodeError as e:
             messagebox.showerror("Fehler", f"Fehler beim Parsen der Konfigurationsdatei: {e}")
-            sys.exit(1)
+            return None  # Rückgabe von None, wenn ein JSON-Parsing-Fehler auftritt
 
 if __name__ == "__main__":
     root = tk.Tk()
