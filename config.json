@@ -1,0 +1,10 @@
+{
+    "line_color": "blue",
+    "prediction_color": "red",
+    "line_style": "-",
+    "prediction_style": "--",
+    "line_width": 2.5,
+    "title": "Verkaufsprognose fur Nachtsichtbrillen",
+    "xlabel": "Monat",
+    "ylabel": "Verkaufte Menge"
+}
