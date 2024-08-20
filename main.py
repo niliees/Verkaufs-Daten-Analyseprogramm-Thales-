@@ -103,7 +103,7 @@ class VerkaufsprognoseApp:
             messagebox.showerror("Fehler", f"Fehler bei der Prognose: {e}")
 
     def plot_results(self, gesamt_daten):
-        plt.figure(figsize=(10, 6))
+        plt.figure(figsize=tuple(self.config.get('figure_size', [10, 6])))
         
         # Plotten der historischen Daten
         plt.plot(gesamt_daten.index, 
@@ -123,12 +123,20 @@ class VerkaufsprognoseApp:
         plt.xlabel(self.config.get('xlabel', 'Monat'))
         plt.ylabel(self.config.get('ylabel', 'Verkaufte Menge'))
         plt.title(self.config.get('title', 'Verkaufsprognose für Nachtsichtbrillen'))
-        plt.legend()
-        plt.grid(True)
+        
+        if self.config.get('show_legend', True):
+            plt.legend(loc=self.config.get('legend_location', 'best'))
+        
+        plt.grid(self.config.get('grid', True))
         
         # Manuelle Anpassung der y-Achse
-        plt.ylim([gesamt_daten.min().min() - 10, gesamt_daten.max().max() + 10])
+        y_min = self.config.get('y_axis_min', gesamt_daten.min().min() - 10)
+        y_max = self.config.get('y_axis_max', gesamt_daten.max().max() + 10)
+        plt.ylim([y_min, y_max])
         
+        if self.config.get('save_plot', False):
+            plt.savefig(self.config.get('save_path', 'prognose_plot.png'))
+
         plt.show()
 
         # Zeige eine Nachricht an, wenn die Vorhersage abgeschlossen ist
@@ -138,15 +146,18 @@ class VerkaufsprognoseApp:
         self.plot_original_data()
 
     def plot_original_data(self):
-        plt.figure(figsize=(10, 6))
+        plt.figure(figsize=tuple(self.config.get('figure_size', [10, 6])))
         plt.plot(self.daten.index, self.daten['Verkaufte Menge'], 
                  label='Verkaufte Menge', 
                  color=self.config.get('line_color', 'blue'))
         plt.xlabel(self.config.get('xlabel', 'Datum'))
         plt.ylabel(self.config.get('ylabel', 'Verkaufte Menge'))
         plt.title(self.config.get('title', 'Verkaufte Menge über die Zeit'))
-        plt.legend()
-        plt.grid(True)
+        
+        if self.config.get('show_legend', True):
+            plt.legend(loc=self.config.get('legend_location', 'best'))
+        
+        plt.grid(self.config.get('grid', True))
         plt.show()
 
 if __name__ == "__main__":
