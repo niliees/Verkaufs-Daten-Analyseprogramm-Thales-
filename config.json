@@ -1,18 +1,18 @@
 {
-    "line_color": "green",               //Farbe der historischen Datenlinie
-    "prediction_color": "red",           // Farbe der Vorhersagelinie
-    "line_style": "-",                   // Stil der historischen Datenlinie
-    "prediction_style": "--",            // Stil der Vorhersagelinie
-    "line_width": 2.5,                   // Linienstärke der Vorhersagelinie
-    "title": "Verkaufsprognose für Nachtsichtbrillen",  // Titel des Diagramms
-    "xlabel": "Monat",                   // Bezeichnung der x-Achse
-    "ylabel": "Verkaufte Menge",         // Bezeichnung der y-Achse
-    "grid": true,                        // Grid (Raster) ein-/ausschalten
-    "y_axis_min": null,                  // Mindestwert der y-Achse (wenn null, wird automatisch eingestellt)
-    "y_axis_max": null,                  // Höchstwert der y-Achse (wenn null, wird automatisch eingestellt)
-    "figure_size": [10, 6],              // Größe der Grafik (Breite, Höhe)
-    "save_plot": false,                  // Soll das Diagramm als Bild gespeichert werden?
-    "save_path": "prognose_plot.png",    // Pfad zum Speichern des Diagramms (wird nur verwendet, wenn save_plot = true)
-    "show_legend": true,                 // Legende ein-/ausschalten
-    "legend_location": "best"            // Position der Legende ("best", "upper right", etc.)
+    "line_color": "blue",               
+    "prediction_color": "red",           
+    "line_style": "-",                   
+    "prediction_style": "--",          
+    "line_width": 2.5,                 
+    "title": "Verkaufsprognose für Nachtsichtbrillen", 
+    "xlabel": "Monat",                  
+    "ylabel": "Verkaufte Menge",        
+    "grid": true,                       
+    "y_axis_min": null,               
+    "y_axis_max": null,                
+    "figure_size": [10, 6],             
+    "save_plot": false,                
+    "save_path": "prognose_plot.png",    
+    "legend_location": "best",
+    "auto_prognose": "false"        
 }
