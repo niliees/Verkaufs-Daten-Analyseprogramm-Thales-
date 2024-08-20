@@ -6,6 +6,7 @@ import tkinter as tk
 from tkinter import filedialog, messagebox
 from dateutil.relativedelta import relativedelta
 import threading
+import json
 
 class VerkaufsprognoseApp:
     def __init__(self, master):
@@ -26,6 +27,18 @@ class VerkaufsprognoseApp:
 
         self.filepath = None
         self.daten = None
+
+        # Load configuration
+        self.config = self.load_config()
+
+    def load_config(self):
+        try:
+            with open('config.json', 'r') as f:
+                config = json.load(f)
+            return config
+        except FileNotFoundError:
+            messagebox.showerror("Fehler", "Konfigurationsdatei 'config.json' nicht gefunden.")
+            return {}
 
     def browse_file(self):
         self.filepath = filedialog.askopenfilename(filetypes=[("Excel files", "*.xlsx")])
@@ -93,14 +106,23 @@ class VerkaufsprognoseApp:
         plt.figure(figsize=(10, 6))
         
         # Plotten der historischen Daten
-        plt.plot(gesamt_daten.index, gesamt_daten['Verkaufte Menge'], label='Verkaufte Menge', color='blue')
+        plt.plot(gesamt_daten.index, 
+                 gesamt_daten['Verkaufte Menge'], 
+                 label='Verkaufte Menge', 
+                 color=self.config.get('line_color', 'blue'), 
+                 linestyle=self.config.get('line_style', '-'))
         
-        # Plotten der Vorhersage als Linie
-        plt.plot(gesamt_daten.index[-12:], gesamt_daten['Vorhersage'].iloc[-12:], label='Vorhersage', color='red', linestyle='--', linewidth=2.5)
+        # Plotten der Vorhersage
+        plt.plot(gesamt_daten.index, 
+                 gesamt_daten['Vorhersage'], 
+                 label='Vorhersage', 
+                 color=self.config.get('prediction_color', 'red'), 
+                 linestyle=self.config.get('prediction_style', '--'), 
+                 linewidth=self.config.get('line_width', 2.5))
 
-        plt.xlabel('Monat')
-        plt.ylabel('Verkaufte Menge')
-        plt.title('Verkaufsprognose für Nachtsichtbrillen')
+        plt.xlabel(self.config.get('xlabel', 'Monat'))
+        plt.ylabel(self.config.get('ylabel', 'Verkaufte Menge'))
+        plt.title(self.config.get('title', 'Verkaufsprognose für Nachtsichtbrillen'))
         plt.legend()
         plt.grid(True)
         
@@ -117,10 +139,12 @@ class VerkaufsprognoseApp:
 
     def plot_original_data(self):
         plt.figure(figsize=(10, 6))
-        plt.plot(self.daten.index, self.daten['Verkaufte Menge'], label='Verkaufte Menge', color='blue')
-        plt.xlabel('Datum')
-        plt.ylabel('Verkaufte Menge')
-        plt.title('Verkaufte Menge über die Zeit')
+        plt.plot(self.daten.index, self.daten['Verkaufte Menge'], 
+                 label='Verkaufte Menge', 
+                 color=self.config.get('line_color', 'blue'))
+        plt.xlabel(self.config.get('xlabel', 'Datum'))
+        plt.ylabel(self.config.get('ylabel', 'Verkaufte Menge'))
+        plt.title(self.config.get('title', 'Verkaufte Menge über die Zeit'))
         plt.legend()
         plt.grid(True)
         plt.show()
