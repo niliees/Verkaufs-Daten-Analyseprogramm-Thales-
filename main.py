@@ -91,7 +91,7 @@ class VerkaufsprognoseApp:
             # Überprüfen, ob die automatische Prognose aktiviert ist
             self.auto_prognose = self.config.get('auto_prognose', False)
             print(f"Auto Prognose: {self.auto_prognose}")  # Debug-Ausgabe, um den Wert von auto_prognose zu überprüfen
-            if self.auto_prognose is True:
+            if self.auto_prognose:
                 self.predict_button.grid_remove()  # Entferne den "Prognose erstellen" Button
         else:
             self.auto_prognose = False
@@ -115,10 +115,14 @@ class VerkaufsprognoseApp:
         """Wird aufgerufen, wenn eine Datei aus dem Verlauf ausgewählt wird."""
         self.filepath = self.selected_file.get()
         self.load_data()
-        if self.auto_prognose is True:
-            self.start_prediction()
+        
+        # Auto-Prognose Check
+        if self.auto_prognose:
+            self.predict_button.grid_remove()  # Entferne den "Prognose erstellen" Button
+            self.start_prediction()  # Starte die Prognose automatisch
         else:
             self.predict_button.config(state=tk.NORMAL)
+        
         self.single_day_button.config(state=tk.NORMAL)
 
     def browse_file(self):
@@ -127,10 +131,14 @@ class VerkaufsprognoseApp:
         if self.filepath:
             self.save_recent_file(self.filepath)
             self.load_data()
-            if self.auto_prognose is True:
-                self.start_prediction()
+
+            # Auto-Prognose Check
+            if self.auto_prognose:
+                self.predict_button.grid_remove()  # Entferne den "Prognose erstellen" Button
+                self.start_prediction()  # Starte die Prognose automatisch
             else:
                 self.predict_button.config(state=tk.NORMAL)
+            
             self.single_day_button.config(state=tk.NORMAL)
 
     def load_data(self):
