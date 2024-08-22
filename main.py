@@ -91,7 +91,7 @@ class VerkaufsprognoseApp:
             # Überprüfen, ob die automatische Prognose aktiviert ist
             self.auto_prognose = self.config.get('auto_prognose', False)
             print(f"Auto Prognose: {self.auto_prognose}")  # Debug-Ausgabe, um den Wert von auto_prognose zu überprüfen
-            if self.auto_prognose:
+            if self.auto_prognose is True:
                 self.predict_button.grid_remove()  # Entferne den "Prognose erstellen" Button
         else:
             self.auto_prognose = False
@@ -117,7 +117,7 @@ class VerkaufsprognoseApp:
         self.load_data()
         
         # Auto-Prognose Check
-        if self.auto_prognose:
+        if self.auto_prognose is True:
             self.predict_button.grid_remove()  # Entferne den "Prognose erstellen" Button
             self.start_prediction()  # Starte die Prognose automatisch
         else:
